@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistente Virtual Automotivo - IA Completa</title>
+    <meta name="description" content="Assistente Virtual Automotivo com IA integrada, scanner ELM327, gestão de manutenção e diagnóstico completo">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1f2937">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Assistente Automotivo">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzFmMjkzNyIvPgo8cGF0aCBkPSJNOCAxMmg0djhoLTR2LTh6bTYgMGg0djhoLTR2LTh6bTYgMGg0djhoLTR2LTh6IiBmaWxsPSIjZjU5ZTBiIi8+CjxwYXRoIGQ9Ik0xMCA4aDEydjJIMTBWOHoiIGZpbGw9IiNmNTllMGIiLz4KPC9zdmc+">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a'
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .chat-bubble {
+            animation: slideInUp 0.3s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .status-indicator {
+            position: relative;
+        }
+        
+        .status-indicator::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        .scanner-animation {
+            animation: scannerPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes scannerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 50;
+        }
+        
+        .tab-content {
+            min-height: calc(100vh - 140px);
+            padding-bottom: 80px;
+        }
+        
+        .floating-action {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            z-index: 40;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                        <i data-lucide="car" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Assistente Automotivo</h1>
+                        <p class="text-sm opacity-90">IA Integrada • Scanner ELM327</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div id="connectionStatus" class="status-indicator">
+                        <i data-lucide="bluetooth" class="w-5 h-5"></i>
+                    </div>
+                    <button id="notificationBtn" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6 tab-content">
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content-panel">
+            <!-- Status Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Status do Motor</p>
+                            <p class="text-lg font-semibold text-green-600">Normal</p>
+                        </div>
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Próxima Revisão</p>
+                            <p class="text-lg font-semibold text-blue-600">15 dias</p>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Consumo Médio</p>
+                            <p class="text-lg font-semibold text-purple-600">14.2 km/l</p>
+                        </div>
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="fuel" class="w-5 h-5 text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">DTCs Ativos</p>
+                            <p class="text-lg font-semibold text-red-600">2</p>
+                        </div>
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle Info -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <i data-lucide="car" class="w-5 h-5 mr-2"></i>
+                    Meu Veículo
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Modelo</p>
+                        <p class="font-semibold">Toyota Corolla 2020</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Quilometragem</p>
+                        <p class="font-semibold">45.230 km</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Última Manutenção</p>
+                        <p class="font-semibold">15/11/2024</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Data -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <i data-lucide="activity" class="w-5 h-5 mr-2"></i>
+                    Dados em Tempo Real
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i data-lucide="gauge" class="w-8 h-8 text-blue-600"></i>
+                        </div>
+                        <p class="text-sm text-gray-600">RPM</p>
+                        <p class="text-xl font-bold" id="rpmValue">1850</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i data-lucide="zap" class="w-8 h-8 text-green-600"></i>
+                        </div>
+                        <p class="text-sm text-gray-600">Velocidade</p>
+                        <p class="text-xl font-bold" id="speedValue">65 km/h</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i data-lucide="thermometer" class="w-8 h-8 text-red-600"></i>
+                        </div>
+                        <p class="text-sm text-gray-600">Temperatura</p>
+                        <p class="text-xl font-bold" id="tempValue">89°C</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i data-lucide="fuel" class="w-8 h-8 text-purple-600"></i>
+                        </div>
+                        <p class="text-sm text-gray-600">Consumo</p>
+                        <p class="text-xl font-bold" id="fuelValue">14.5 km/l</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <i data-lucide="trending-up" class="w-5 h-5 mr-2"></i>
+                    Performance dos Últimos 7 Dias
+                </h2>
+                <canvas id="performanceChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Chat Tab -->
+        <div id="chat-tab" class="tab-content-panel hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 h-96 flex flex-col">
+                <div class="p-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold flex items-center">
+                        <i data-lucide="message-circle" class="w-5 h-5 mr-2"></i>
+                        Chat com IA
+                    </h2>
+                    <p class="text-sm text-gray-600">Converse sobre seu veículo em linguagem natural</p>
+                </div>
+                
+                <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3">
+                    <div class="chat-bubble bg-blue-50 p-3 rounded-lg">
+                        <p class="text-sm"><strong>IA:</strong> Olá! Sou seu assistente virtual automotivo. Como posso ajudar você hoje?</p>
+                    </div>
+                </div>
+                
+                <div class="p-4 border-t border-gray-200">
+                    <div class="flex space-x-2">
+                        <input 
+                            type="text" 
+                            id="chatInput" 
+                            placeholder="Digite sua pergunta..." 
+                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                        <button id="sendBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                        </button>
+                        <button id="voiceBtn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                            <i data-lucide="mic" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner Tab -->
+        <div id="scanner-tab" class="tab-content-panel hidden">
+            <div class="space-y-6">
+                <!-- Scanner Connection -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i data-lucide="bluetooth" class="w-5 h-5 mr-2"></i>
+                        Scanner ELM327
+                    </h2>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="font-medium">Status da Conexão</p>
+                            <p class="text-sm text-gray-600" id="scannerStatus">Desconectado</p>
+                        </div>
+                        <button id="connectBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Conectar Scanner
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button id="readDtcBtn" class="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50" disabled>
+                            <i data-lucide="search" class="w-6 h-6 mx-auto mb-2 text-blue-600"></i>
+                            <p class="text-sm font-medium">Ler DTCs</p>
+                        </button>
+                        <button id="clearDtcBtn" class="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50" disabled>
+                            <i data-lucide="rotate-ccw" class="w-6 h-6 mx-auto mb-2 text-green-600"></i>
+                            <p class="text-sm font-medium">Limpar DTCs</p>
+                        </button>
+                        <button id="liveDataBtn" class="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50" disabled>
+                            <i data-lucide="activity" class="w-6 h-6 mx-auto mb-2 text-purple-600"></i>
+                            <p class="text-sm font-medium">Dados ao Vivo</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DTC Results -->
+                <div id="dtcResults" class="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hidden">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 mr-2"></i>
+                        Códigos de Diagnóstico (DTCs)
+                    </h3>
+                    <div id="dtcList" class="space-y-3">
+                        <!-- DTCs will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance Tab -->
+        <div id="maintenance-tab" class="tab-content-panel hidden">
+            <div class="space-y-6">
+                <!-- Maintenance Schedule -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i data-lucide="wrench" class="w-5 h-5 mr-2"></i>
+                        Cronograma de Manutenção
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="clock" class="w-5 h-5 text-yellow-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Troca de Óleo</p>
+                                    <p class="text-sm text-gray-600">Vence em 15 dias ou 2.000 km</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">Pendente</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Filtro de Ar</p>
+                                    <p class="text-sm text-gray-600">Realizada em 15/11/2024</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Concluída</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Revisão Geral</p>
+                                    <p class="text-sm text-gray-600">Agendada para 30/12/2024</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Agendada</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Maintenance -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i data-lucide="plus" class="w-5 h-5 mr-2"></i>
+                        Adicionar Manutenção
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" placeholder="Tipo de manutenção" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="date" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" placeholder="Quilometragem" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" placeholder="Custo (R$)" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <button class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Adicionar Manutenção
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports-tab" class="tab-content-panel hidden">
+            <div class="space-y-6">
+                <!-- Fuel Consumption -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i data-lucide="fuel" class="w-5 h-5 mr-2"></i>
+                        Consumo de Combustível
+                    </h2>
+                    <canvas id="fuelChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Cost Analysis -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i data-lucide="dollar-sign" class="w-5 h-5 mr-2"></i>
+                        Análise de Custos
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-blue-600">R$ 1.250</p>
+                            <p class="text-sm text-gray-600">Combustível (mês)</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-green-600">R$ 450</p>
+                            <p class="text-sm text-gray-600">Manutenção (mês)</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-purple-600">R$ 1.700</p>
+                            <p class="text-sm text-gray-600">Total (mês)</p>
+                        </div>
+                    </div>
+                    
+                    <canvas id="costChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Action Button -->
+    <button id="emergencyBtn" class="floating-action w-14 h-14 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-colors flex items-center justify-center">
+        <i data-lucide="shield" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <div class="flex justify-around py-2">
+            <button class="tab-btn active flex flex-col items-center py-2 px-4" data-tab="dashboard">
+                <i data-lucide="car" class="w-5 h-5 mb-1"></i>
+                <span class="text-xs">Dashboard</span>
+            </button>
+            <button class="tab-btn flex flex-col items-center py-2 px-4" data-tab="chat">
+                <i data-lucide="message-circle" class="w-5 h-5 mb-1"></i>
+                <span class="text-xs">Chat IA</span>
+            </button>
+            <button class="tab-btn flex flex-col items-center py-2 px-4" data-tab="scanner">
+                <i data-lucide="search" class="w-5 h-5 mb-1"></i>
+                <span class="text-xs">Scanner</span>
+            </button>
+            <button class="tab-btn flex flex-col items-center py-2 px-4" data-tab="maintenance">
+                <i data-lucide="wrench" class="w-5 h-5 mb-1"></i>
+                <span class="text-xs">Manutenção</span>
+            </button>
+            <button class="tab-btn flex flex-col items-center py-2 px-4" data-tab="reports">
+                <i data-lucide="bar-chart-3" class="w-5 h-5 mb-1"></i>
+                <span class="text-xs">Relatórios</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Scripts -->
+    <script src="ai-engine.js"></script>
+    <script src="elm327-service.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
